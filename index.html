@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <title>Non-Standard Item Usage Record</title>
+  
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    /* -------------------------------------------------------------------------- */
+    /* BASE STYLES */
+    /* -------------------------------------------------------------------------- */
+    body { font-family: sans-serif; margin: 20px; background-color: #f8f9fa; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .header { text-align: center; margin-bottom: 20px; }
+    .header img { width: 120px; height: auto; margin-bottom: 10px; border-radius: 50%; }
+    h1 { color: #007bff; font-size: 1.8em; margin-bottom: 5px; }
+    h2 { color: #6c757d; font-size: 1.1em; font-weight: normal; margin-top: 0; }
+    h3 { margin-top: 25px; color: #343a40; border-bottom: 2px solid #007bff; padding-bottom: 5px; }
+    label { display: block; margin-top: 15px; margin-bottom: 5px; font-weight: bold; }
+    input[type="text"], input[type="date"], select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ced4da; border-radius: 4px; box-sizing: border-box; }
+    button { background-color: #28a745; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 1em; margin-top: 20px; width: 100%; }
+    button:hover { background-color: #218838; }
+    .success { background-color: #e6ffed; color: #28a745; }
+    .error { background-color: #ffe6e6; color: red; }
+    #message-area { margin-top: 20px; padding: 10px; border-radius: 4px; text-align: center; display: none; }
+    
+    /* -------------------------------------------------------------------------- */
+    /* ICON / INPUT / MODAL STYLES (For Serial No Scanner) */
+    /* -------------------------------------------------------------------------- */
+    .serial-input-group {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .serial-input-group input {
+        flex-grow: 1;
+        margin-bottom: 0;
+        border-right: none;
+        border-radius: 4px 0 0 4px;
+    }
+    .scan-btn {
+        background-color: #6c757d;
+        color: white;
+        padding: 10px;
+        width: 40px;
+        height: 40px;
+        border: 1px solid #ced4da;
+        border-radius: 0 4px 4px 0;
+        cursor: pointer;
+        margin-top: 0;
+        font-size: 1em;
+        line-height: 1;
+        box-sizing: border-box; 
+    }
+    .modal {
+        display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); 
+    }
+    .modal-content {
+        background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 450px; border-radius: 8px; text-align: center;
+    }
+    .close-btn {
+        color: #aaa; float: right; font-size: 28px; font-weight: bold;
+    }
+    .close-btn:hover, .close-btn:focus { color: #000; text-decoration: none; cursor: pointer; }
+
+    /* Footer Style */
+    .footer {
+        margin-top: 40px;
+        padding-top: 15px;
+        border-top: 1px solid #ced4da;
+        font-size: 0.8em;
+        color: #6c757d;
+        text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <img src="https://lh3.googleusercontent.com/d/1tCDAMimy_b0x9kRmWNyYMn4voR9Ynr0J" alt="Logo">
+    <h1>Non-Standard Item Usage Record</h1>
+    <h2>Haemodialysis Unit, Sarawak General Hospital</h2>
+  </div>
+
+  <form id="usageRecordForm">
+    
+    <label for="serialNo">Serial No.:</label>
+    <div class="serial-input-group">
+        <input type="text" 
+               id="serialNo"
+               name="serialNo" 
+               placeholder="Scan or enter Serial No" 
+               required>
+        <button type="button" class="scan-btn" onclick="startScanner('serialNo')" title="Activate QR Scanner">
+            &#128247;
+        </button>
+    </div>
+
+    <h3>Patient's Detail</h3>
+    
+    <label for="patientName">Name:</label>
+    <input type="text" id="patientName" name="patientName" required>
+
+    <label for="icNo">IC No.:</label>
+    <input type="text" id="icNo" name="icNo" required>
+
+    <label for="wardBedNo">Ward/Bed No.:</label>
+    <input type="text" id="wardBedNo" name="wardBedNo" placeholder="e.g., Med 4/Bed10" required>
+
+    <label for="hospital">Hospital:</label>
+    <select id="hospital" name="hospital" required>
+        <option value="" disabled selected>Select Hospital</option>
+        <option value="Sarawak General Hospital">Sarawak General Hospital</option>
+        <option value="Pusat Jantung Sarawak">Pusat Jantung Sarawak</option>
+        <option value="Hospital Serian">Hospital Serian</option>
+        <option value="Hospital Sri Aman">Hospital Sri Aman</option>
+    </select>
+    
+    <label for="usageDate">Date of Insertion/Usage:</label>
+    <input type="date" id="usageDate" name="usageDate" required>
+
+    <h3>Staff Detail</h3>
+
+    <label for="doneBy">Done by:</label>
+    <input type="text" id="doneBy" name="doneBy" required>
+
+    <label for="designation">Designation:</label>
+    <select id="designation" name="designation" required>
+      <option value="" disabled selected>Select Designation</option>
+      <option value="Nephrologist">Nephrologist</option>
+      <option value="Physician/Specialist">Physician/Specialist</option>
+      <option value="Medical Officer">Medical Officer</option>
+      <option value="Assistant Medical Officer">Assistant Medical Officer</option>
+      <option value="Staff Nurse">Staff Nurse</option>
+    </select>
+
+    <button type="submit" id="saveBtn">Save Record</button>
+    
+    <div id="message-area"></div>
+
+  </form>
+
+  <div class="footer">
+    &copy; Designed and developed by PPP Zulfadlie bin Janie<br>
+    for Haemodialysis Unit, Sarawak General Hospital
+  </div>
+</div>
+
+<div id="scannerModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="stopAndHideScanner()">&times;</span>
+        <h2>Scan QR Code</h2>
+        <div id="reader-modal" style="width: 100%;"></div>
+        <p id="scan-status" style="font-size: 0.8em; color: gray;">Place QR code within the view.</p>
+    </div>
+</div>
+
+<script>
+    // Live Google Apps Script Web App Deployment URL
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyRZPJxJQT84Z_lWA_9k3dj3gbHDYReRkmQD-uGgadIBTpavO02ToXPhO1jiSAwqdQ/exec";
+
+    const modal = document.getElementById('scannerModal');
+    let html5QrCode = null;
+    let activeInputId = null;
+    
+    /**
+     * Plays a short confirmation beep sound using the Web Audio API.
+     */
+    function playScanBeep() {
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+
+            oscillator.start();
+
+            setTimeout(() => {
+                oscillator.stop();
+            }, 150);
+
+        } catch (e) {
+            console.warn("Web Audio API not supported or failed to start: ", e);
+        }
+    }
+
+    // --------------------------------------------------------------------------
+    // SCANNER LOGIC 
+    // --------------------------------------------------------------------------
+
+    function startScanner(inputId) {
+        activeInputId = inputId;
+        modal.style.display = 'block';
+
+        if (!html5QrCode) {
+            html5QrCode = new Html5Qrcode("reader-modal");
+        }
+
+        const config = { fps: 10, qrbox: { width: 200, height: 200 } };
+        
+        html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanFailure)
+        .then(() => {
+             document.getElementById('scan-status').textContent = 'Scanner Active. Point camera at QR Code.';
+        })
+        .catch((err) => {
+            document.getElementById('scan-status').textContent = `Error: Cannot start camera. Check permissions/HTTPS.`;
+            console.error("Camera start failed:", err);
+        });
+    }
+
+    function stopAndHideScanner() {
+        if (html5QrCode && html5QrCode.isScanning) {
+            html5QrCode.stop().then(() => {
+                modal.style.display = 'none';
+                activeInputId = null;
+            }).catch(err => {
+                console.warn("Failed to stop scanner:", err);
+                modal.style.display = 'none';
+                activeInputId = null;
+            });
+        } else {
+            modal.style.display = 'none';
+            activeInputId = null;
+        }
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+        stopAndHideScanner(); 
+        
+        const input = document.getElementById(activeInputId);
+        
+        if (input && decodedText.trim() !== "") {
+            playScanBeep();
+            input.value = decodedText.trim();
+        }
+    }
+
+    function onScanFailure(errorMessage) {
+        // Ignored
+    }
+
+    // --------------------------------------------------------------------------
+    // SUBMISSION LOGIC 
+    // --------------------------------------------------------------------------
+    
+    document.getElementById('usageRecordForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        stopAndHideScanner(); 
+        
+        const form = e.target;
+        const messageArea = document.getElementById('message-area');
+        messageArea.style.display = 'none';
+        
+        const formData = {
+            serialNo: form.serialNo.value,
+            patientName: form.patientName.value,
+            icNo: form.icNo.value,
+            wardBedNo: form.wardBedNo.value,
+            hospital: form.hospital.value,
+            usageDate: form.usageDate.value,
+            doneBy: form.doneBy.value,
+            designation: form.designation.value
+        };
+        
+        if (!formData.serialNo) {
+            showMessage("Please scan or enter the Serial Number.", 'error');
+            return;
+        }
+
+        document.getElementById('saveBtn').disabled = true;
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8',
+            },
+            body: JSON.stringify({
+                action: 'saveUsageRecord',
+                payload: formData
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(result => {
+            document.getElementById('saveBtn').disabled = false;
+            if (result.success) {
+                showMessage(result.message, 'success');
+                form.reset(); 
+            } else {
+                showMessage("Error saving record: " + result.error, 'error');
+            }
+        })
+        .catch(error => {
+            document.getElementById('saveBtn').disabled = false;
+            showMessage("Server error: " + error, 'error');
+        });
+    });
+    
+    function showMessage(text, type) {
+        const messageArea = document.getElementById('message-area');
+        messageArea.textContent = text;
+        messageArea.className = type;
+        messageArea.style.display = 'block';
+    }
+
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        stopAndHideScanner();
+      }
+    }
+</script>
+</body>
+</html>
